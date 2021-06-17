@@ -26,8 +26,8 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isVideo = false;
   VideoPlayerController? _controller;
 
-  Future getImage() async {
-    final pickedFile = await picker.getImage(source: ImageSource.gallery);
+  Future getImage(ImageSource imageSource) async {
+    final pickedFile = await picker.getImage(source: imageSource);
 
     setState(() {
       if (pickedFile != null) {
@@ -71,19 +71,43 @@ class _MyHomePageState extends State<MyHomePage> {
                 ? VideoPlayer(_controller!)
                 : Image.file(_file!),
       ),
-      floatingActionButton: Wrap(
-        children: [
-          FloatingActionButton(
-            onPressed: getImage,
-            tooltip: 'Pick Image',
-            child: Icon(Icons.add_a_photo),
-          ),
-          FloatingActionButton(
-              onPressed: getVideo,
-              tooltip: 'Add a video',
-              child: Icon(Icons.add)),
-        ],
-      ),
+      floatingActionButton: Wrap(children: [
+        FloatingActionButton(
+          tooltip: 'Pick Image',
+          child: Icon(Icons.add_a_photo),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text("Pick an image"),
+                actions: [
+                  ListTile(
+                    title: Text("Camera"),
+                    onTap: () {
+                      getImage(ImageSource.camera);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    title: Text("Gallery"),
+                    onTap: () {
+                      getImage(ImageSource.gallery);
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        SizedBox(
+          width: 10,
+        ),
+        FloatingActionButton(
+            onPressed: getVideo,
+            tooltip: 'Add a video',
+            child: Icon(Icons.add)),
+      ]),
     );
   }
 }
