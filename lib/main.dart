@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 
@@ -27,11 +28,28 @@ class _MyHomePageState extends State<MyHomePage> {
   VideoPlayerController? _controller;
 
   Future getImage(ImageSource imageSource) async {
-    final pickedFile = await picker.getImage(source: imageSource);
-
+    var pickedFile = await picker.getImage(source: imageSource);
+    File? croppedFile = await ImageCropper.cropImage(
+        sourcePath: pickedFile!.path,
+        aspectRatioPresets: [
+          CropAspectRatioPreset.square,
+          CropAspectRatioPreset.ratio3x2,
+          CropAspectRatioPreset.original,
+          CropAspectRatioPreset.ratio4x3,
+          CropAspectRatioPreset.ratio16x9
+        ],
+        androidUiSettings: AndroidUiSettings(
+            toolbarTitle: 'Cropper',
+            toolbarColor: Colors.blue,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.original,
+            lockAspectRatio: false),
+        iosUiSettings: IOSUiSettings(
+          minimumAspectRatio: 1.0,
+        ));
     setState(() {
-      if (pickedFile != null) {
-        _file = File(pickedFile.path);
+      if (croppedFile != null) {
+        _file = croppedFile;
         _isVideo = false;
       } else {
         print('No image selected.');
@@ -39,8 +57,8 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Future getVideo() async {
-    final pickedFile = await picker.getVideo(source: ImageSource.gallery);
+  Future getVideo(ImageSource imageSource) async {
+    final pickedFile = await picker.getVideo(source: imageSource);
     _file = File(pickedFile!.path);
     _controller = VideoPlayerController.file(_file!);
     await _controller!.initialize();
@@ -104,7 +122,29 @@ class _MyHomePageState extends State<MyHomePage> {
           width: 10,
         ),
         FloatingActionButton(
-            onPressed: getVideo,
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                        title: Text("Pick an Video"),
+                        actions: [
+                          ListTile(
+                            title: Text("Camera"),
+                            onTap: () {
+                              getVideo(ImageSource.camera);
+                              Navigator.pop(context);
+                            },
+                          ),
+                          ListTile(
+                            title: Text("Gallery"),
+                            onTap: () {
+                              getVideo(ImageSource.gallery);
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ],
+                      ));
+            },
             tooltip: 'Add a video',
             child: Icon(Icons.add)),
       ]),
