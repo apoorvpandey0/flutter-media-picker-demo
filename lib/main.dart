@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 void main() async {
@@ -117,6 +117,9 @@ class _MyHomePageState extends State<MyHomePage> {
     print("Results: ${res.items}");
   }
 
+  void _launchURL(String _url) async => await canLaunch(_url)
+      ? await launch(_url)
+      : throw 'Could not launch $_url';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -141,9 +144,14 @@ class _MyHomePageState extends State<MyHomePage> {
                   // color: Colors.amber,
                   child: index < imageUrls.length
                       ? Image.network(imageUrls[index])
-                      : Container(
-                          color: Colors.blue,
-                          child: Text(videoUrls[index - imageUrls.length])),
+                      : GestureDetector(
+                          onTap: () {
+                            _launchURL(videoUrls[index - imageUrls.length]);
+                          },
+                          child: Container(
+                              color: Colors.blue[100],
+                              child: Text(videoUrls[index - imageUrls.length])),
+                        ),
                 ),
               );
             })
