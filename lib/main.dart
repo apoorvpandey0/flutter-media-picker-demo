@@ -52,7 +52,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future getImage(ImageSource imageSource) async {
-    var pickedFile = await picker.getImage(source: imageSource);
+    PickedFile? pickedFile =
+        await picker.getImage(source: imageSource, imageQuality: 10);
+
     File? croppedFile = await ImageCropper.cropImage(
         sourcePath: pickedFile!.path,
         aspectRatioPresets: [
@@ -71,6 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
         iosUiSettings: IOSUiSettings(
           minimumAspectRatio: 1.0,
         ));
+    print("SIZE: ${croppedFile!.lengthSync()}");
     setState(() {
       if (croppedFile != null) {
         _file = croppedFile;
@@ -132,7 +135,14 @@ class _MyHomePageState extends State<MyHomePage> {
               ? Text('No image selected.')
               : _isVideo
                   ? VideoPlayer(_controller!)
-                  : Image.file(_file!),
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.file(_file!),
+                        Text(
+                            "Size: ${((_file!.lengthSync()) / 1024).floor().toString()} Kb"),
+                      ],
+                    ),
         ),
         ListView.builder(
             itemCount: imageUrls.length + videoUrls.length,
