@@ -34,6 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final picker = ImagePicker();
   bool _isVideo = false;
   bool isUploading = false;
+  bool isLoading = false;
   VideoPlayerController? _controller;
   FirebaseStorage storage = FirebaseStorage.instance;
   List<String> imageUrls = [];
@@ -86,6 +87,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future getVideo(ImageSource imageSource) async {
+    setState(() {
+      isLoading = true;
+    });
     final pickedFile = await picker.getVideo(source: imageSource);
     _file = File(pickedFile!.path);
     _controller = VideoPlayerController.file(_file!);
@@ -108,6 +112,9 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     });
     _controller!.play();
+    setState(() {
+      isLoading = false;
+    });
   }
 
   Future getItems() async {
@@ -137,28 +144,31 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text('Image Picker Example'),
       ),
       body: PageView(children: [
-        Center(
-          child: _file == null
-              ? Text('No image selected.')
-              : _isVideo
-                  ? Column(
-                      children: [
-                        Container(
-                            height: MediaQuery.of(context).size.height * 0.7,
-                            child: VideoPlayer(_controller!)),
-                        Text(
-                            "Size: ${((_file!.lengthSync()) / 1024).floor().toString()} Kb"),
-                      ],
-                    )
-                  : Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.file(_file!),
-                        Text(
-                            "Size: ${((_file!.lengthSync()) / 1024).floor().toString()} Kb"),
-                      ],
-                    ),
-        ),
+        isLoading
+            ? Center(child: CircularProgressIndicator())
+            : Center(
+                child: _file == null
+                    ? Text('No image selected.')
+                    : _isVideo
+                        ? Column(
+                            children: [
+                              Container(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.7,
+                                  child: VideoPlayer(_controller!)),
+                              Text(
+                                  "Size: ${((_file!.lengthSync()) / 1024).floor().toString()} Kb"),
+                            ],
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.file(_file!),
+                              Text(
+                                  "Size: ${((_file!.lengthSync()) / 1024).floor().toString()} Kb"),
+                            ],
+                          ),
+              ),
         ListView.builder(
             itemCount: imageUrls.length + videoUrls.length,
             itemBuilder: (context, index) {
