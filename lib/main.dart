@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:video_compress/video_compress.dart';
 import 'package:video_player/video_player.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -91,6 +92,12 @@ class _MyHomePageState extends State<MyHomePage> {
     await _controller!.initialize();
     await _controller!.setLooping(true);
     // await _controller.play();
+    MediaInfo? mediaInfo = await VideoCompress.compressVideo(
+      _file!.path,
+      quality: VideoQuality.LowQuality,
+      deleteOrigin: false, // It's false by default
+    );
+    _file = mediaInfo!.file;
     setState(() {
       // ignore: unnecessary_null_comparison
       if (pickedFile != null) {
@@ -134,7 +141,15 @@ class _MyHomePageState extends State<MyHomePage> {
           child: _file == null
               ? Text('No image selected.')
               : _isVideo
-                  ? VideoPlayer(_controller!)
+                  ? Column(
+                      children: [
+                        Container(
+                            height: MediaQuery.of(context).size.height * 0.7,
+                            child: VideoPlayer(_controller!)),
+                        Text(
+                            "Size: ${((_file!.lengthSync()) / 1024).floor().toString()} Kb"),
+                      ],
+                    )
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
